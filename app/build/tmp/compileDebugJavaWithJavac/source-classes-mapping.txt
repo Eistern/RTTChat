@@ -1,0 +1,2 @@
+nsu/fit/rttchat/BuildConfig.java
+ nsu.fit.rttchat.BuildConfig
