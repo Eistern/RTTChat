@@ -1,30 +1,24 @@
 package nsu.fit.rttchat.service
 
 import android.app.Service
-import android.app.admin.DeviceAdminInfo
-import android.bluetooth.BluetoothClass
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.net.wifi.aware.*
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.provider.Settings
 import android.util.Log
 import java.net.ServerSocket
-import java.security.AccessController.getContext
 
-class WifiAwareService : Service() {
+class WifiAwareService(private var context: Context) : Service() {
     private var AWARE_FILE_SHARE_SERVICE_NAME: String = "RTT_CHAT_AWARE_SERVICE"
     private lateinit var wifiSession : WifiAwareSession
 
     private var messageId = 0
 
-    val android_id = Settings.Secure.getString(applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID);
+    val androidId = 1
 
     fun createRoom() {
         val config: PublishConfig = PublishConfig.Builder()
@@ -35,7 +29,7 @@ class WifiAwareService : Service() {
 
             override fun onPublishStarted(session: PublishDiscoverySession) {
                 this.session = session
-                Log.d("onPublishStarted", "onPublishStarted$android_id")
+                Log.d("onPublishStarted", "onPublishStarted$androidId")
             }
 
             override fun onMessageReceived(peerHandle: PeerHandle, message: ByteArray) {
@@ -44,7 +38,7 @@ class WifiAwareService : Service() {
 
                 val connMgr = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
 
-                Log.d("onMessageReceived", "onMessageReceived$android_id")
+                Log.d("onMessageReceived", "onMessageReceived$androidId")
             }
         }, null)
     }
@@ -63,18 +57,18 @@ class WifiAwareService : Service() {
                 matchFilter: List<ByteArray>
             ) {
                 this.peerHandle = peerHandle
-                Log.d("onServiceDiscovered", "onServiceDiscovered$android_id")
+                Log.d("onServiceDiscovered", "onServiceDiscovered$androidId")
             }
 
             override fun onSubscribeStarted(session: SubscribeDiscoverySession) {
                 session.sendMessage(peerHandle, messageId++, "Hello".toByteArray())
-                Log.d("onSubscribeStarted", "onSubscribeStarted$android_id")
+                Log.d("onSubscribeStarted", "onSubscribeStarted$androidId")
             }
         }, null)
     }
 
     override fun onCreate() {
-        if (!applicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE)) {
+        if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE)) {
             Log.e("WifiAwareService", "No Wifi Aware avalible")
             throw Exception("No Wifi Aware")
         }
