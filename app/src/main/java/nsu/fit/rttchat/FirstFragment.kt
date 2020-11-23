@@ -14,7 +14,7 @@ import nsu.fit.rttchat.model.Message
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class FirstFragment : Fragment(){
+class FirstFragment : Fragment() {
 
     private var editText: EditText? = null
 

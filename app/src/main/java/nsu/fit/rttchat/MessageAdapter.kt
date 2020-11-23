@@ -10,11 +10,11 @@ import android.widget.TextView
 import nsu.fit.rttchat.model.Message
 
 
-public class MessageAdapter(context : Context) : BaseAdapter() {
+class MessageAdapter(context : Context) : BaseAdapter() {
     var messages: MutableList<Message> = mutableListOf()
     var context : Context = context
 
-    public fun addMessage(message : Message) {
+    fun addMessage(message : Message) {
         messages.add(message)
         notifyDataSetChanged()
     }
