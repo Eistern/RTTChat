@@ -1,34 +1,17 @@
 package nsu.fit.rttchat
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-
-var p2pStateReceiver : BroadcastReceiver = object : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-        when (intent?.action) {
-            WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
-                when (intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)) {
-                    WifiP2pManager.WIFI_P2P_STATE_ENABLED -> {
-                        // It's ok
-                    }
-                    else -> {
-                        Log.e("P2PWatcher", "P2P Unavailable")
-                        throw Exception("P2P Unavailable")
-                    }
-                }
-            }
-        }
-    }
-}
+import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,15 +27,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
-        val stateFilter = IntentFilter().apply {
-            addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
-        }
-        applicationContext.registerReceiver(p2pStateReceiver, stateFilter)
-
         channel = manager?.initialize(this, mainLooper, null)
         channel?.also { channel ->
             receiver = manager?.let { P2pBroadcasrReceiver(it, channel, this) }
         }
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) { return }
+
+        manager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+            override fun onSuccess() {
+                print("")
+            }
+            override fun onFailure(reasonCode: Int) {
+                print("")
+            }
+        })
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
     }
