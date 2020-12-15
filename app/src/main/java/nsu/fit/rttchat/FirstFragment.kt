@@ -4,21 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import nsu.fit.rttchat.model.Message
-import nsu.fit.rttchat.service.WifiAwareService
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class FirstFragment : Fragment() {
-
-    private lateinit var service : WifiAwareService
-
     private var editText: EditText? = null
 
     private var messageAdapter : MessageAdapter? = null
@@ -35,22 +30,11 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        service = WifiAwareService(requireContext())
-        service.onCreate()
-
         messageAdapter = context?.let { MessageAdapter(it) }
         messagesView = view.findViewById(R.id.messages_view) as ListView
         messagesView?.adapter = messageAdapter
 
         editText = view.findViewById(R.id.nameInput)
-
-        view.findViewById<Button>(R.id.button1).setOnClickListener {
-            service.createRoom()
-        }
-
-        view.findViewById<Button>(R.id.button2).setOnClickListener {
-            service.joinRoom()
-        }
 
         view.findViewById<FloatingActionButton>(R.id.sendButton).setOnClickListener {
             val text : String = if (editText?.text == null) "" else editText?.text.toString()
