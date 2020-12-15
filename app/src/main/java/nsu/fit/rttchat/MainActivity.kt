@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
 
         channel = manager?.initialize(this, mainLooper, null)
         channel?.also { channel ->
-            receiver = WiFiDirectBroadcastReceiver(manager, channel, this) {}
+            receiver = manager?.let { P2pBroadcasrReceiver(it, channel, this) }
         }
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
@@ -70,6 +70,29 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val intentFilter = IntentFilter().apply {
+            addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
+            addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
+            addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
+            addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
+        }
+        
+        receiver?.also { receiver ->
+            registerReceiver(receiver, intentFilter)
+        }
+    }
+
+    /* unregister the broadcast receiver */
+    override fun onPause() {
+        super.onPause()
+        receiver?.also { receiver ->
+            unregisterReceiver(receiver)
         }
     }
 }
