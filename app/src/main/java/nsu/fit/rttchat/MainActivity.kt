@@ -12,6 +12,8 @@ import android.view.MenuItem
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import java.net.ServerSocket
+import java.net.Socket
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +23,8 @@ class MainActivity : AppCompatActivity() {
 
     var channel: WifiP2pManager.Channel? = null
     var receiver: BroadcastReceiver? = null
+
+    val hosts : List<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

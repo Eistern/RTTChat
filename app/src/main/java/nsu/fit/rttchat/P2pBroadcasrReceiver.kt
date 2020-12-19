@@ -36,6 +36,7 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
                     }
                 }
             }
+
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                 if (ActivityCompat.checkSelfPermission(
                         activity,
@@ -48,6 +49,7 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
                     for(device : WifiP2pDevice? in peers?.deviceList!!) {
                         val config = WifiP2pConfig()
                         config.deviceAddress = device?.deviceAddress
+                        
                         channel.also { channel ->
                             manager.connect(channel, config, object : WifiP2pManager.ActionListener {
                                 override fun onSuccess() {
