@@ -1,18 +1,20 @@
 package nsu.fit.rttchat
 
 import android.Manifest
-import android.R
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.NetworkInfo
-import android.net.wifi.p2p.*
+import android.net.wifi.p2p.WifiP2pConfig
+import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pDeviceList
+import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 
 
-class P2pBroadcasrReceiver : BroadcastReceiver {
+class P2pBroadcastReceiver : BroadcastReceiver {
     var manager : WifiP2pManager
     var channel : WifiP2pManager.Channel
     var activity : MainActivity
@@ -29,6 +31,14 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
     }
 
     fun renewDevicesInf() {
+        if (ActivityCompat.checkSelfPermission(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(activity,
+                listOf(Manifest.permission.ACCESS_FINE_LOCATION).toTypedArray(), 200)
+        }
         manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
                 print("Ура")
@@ -72,9 +82,8 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
                 }
             }
             WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
-                val networkInfo = intent
-                    .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo
-                if (networkInfo.isConnected) {
+                val networkInfo = intent.getParcelableExtra<NetworkInfo>(WifiP2pManager.EXTRA_NETWORK_INFO)
+                if (networkInfo?.isConnected == true) {
                     manager.requestConnectionInfo(channel) { p0 ->
                         if(p0?.groupFormed!! && p0.isGroupOwner) {
                             SocketBackground().execute()
@@ -103,11 +112,12 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
                             manager.connect(channel, config, object : WifiP2pManager.ActionListener {
                                 override fun onSuccess() {
                                     //success logic
-
+                                    print("Yay")
                                 }
 
                                 override fun onFailure(reason: Int) {
                                     //failure logic
+                                    print("Nay")
                                 }
                             })
                         }

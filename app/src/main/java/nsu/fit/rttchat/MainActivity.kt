@@ -13,8 +13,7 @@ import android.view.MenuItem
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import java.net.ServerSocket
-import java.net.Socket
+import nsu.fit.rttchat.P2pBroadcastReceiver
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,9 +35,7 @@ class MainActivity : AppCompatActivity() {
         manager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
 
         channel = manager.initialize(this, mainLooper, null)
-        channel?.also { channel ->
-            receiver = P2pBroadcasrReceiver(manager, channel, this)
-        }
+        receiver = P2pBroadcastReceiver(manager, channel!!, this)
 
         if (ActivityCompat.checkSelfPermission(
                 this,
