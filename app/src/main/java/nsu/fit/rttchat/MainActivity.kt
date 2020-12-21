@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     var channel: WifiP2pManager.Channel? = null
     var receiver: BroadcastReceiver? = null
 
+    //Здесь должны быть все ip адреса
     val hosts : List<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +42,8 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            return
+            ActivityCompat.requestPermissions(this,
+                listOf(Manifest.permission.ACCESS_FINE_LOCATION).toTypedArray(), 200)
         }
         manager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
@@ -53,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         })
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+
+        SocketBackground().execute()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
