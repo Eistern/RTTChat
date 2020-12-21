@@ -3,10 +3,10 @@ package nsu.fit.rttchat
 import android.os.AsyncTask
 import java.net.ServerSocket
 
-class SocketBackground : AsyncTask<Void, Void, String?>() {
+class SocketBackground : AsyncTask<Void, Void, String>() {
     lateinit var serverSocket : ServerSocket
 
-    override fun doInBackground(vararg params: Void): String? {
+    override fun doInBackground(vararg params: Void) : String{
         serverSocket = ServerSocket(8888)
 
         return serverSocket.use {
@@ -21,8 +21,8 @@ class SocketBackground : AsyncTask<Void, Void, String?>() {
                 message.append(data)
             }
 
-            serverSocket.close()
-            return message.toString()
+            //write other
+            return  ""
         }
     }
 

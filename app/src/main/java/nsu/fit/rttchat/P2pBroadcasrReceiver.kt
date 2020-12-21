@@ -1,18 +1,16 @@
 package nsu.fit.rttchat
 
 import android.Manifest
+import android.R
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.wifi.p2p.WifiP2pConfig
-import android.net.wifi.p2p.WifiP2pDevice
-import android.net.wifi.p2p.WifiP2pDeviceList
-import android.net.wifi.p2p.WifiP2pManager
+import android.net.NetworkInfo
+import android.net.wifi.p2p.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import java.util.*
+
 
 class P2pBroadcasrReceiver : BroadcastReceiver {
     var manager : WifiP2pManager
@@ -21,6 +19,9 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
 
     var ipGetter = GetIpByArp()
 
+    //Здесь должны быть все ip адреса
+    var hosts : MutableSet<String> = HashSet()
+
     constructor(manager: WifiP2pManager, channel : WifiP2pManager.Channel, activity: MainActivity) {
         this.manager = manager
         this.channel = channel
@@ -28,26 +29,35 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
     }
 
     fun renewDevicesInf() {
-            if (ActivityCompat.checkSelfPermission(
-                    activity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(activity,
-                    listOf(Manifest.permission.ACCESS_FINE_LOCATION).toTypedArray(), 200)
-            }
-            manager.requestPeers(channel) { peers: WifiP2pDeviceList? ->
-                for(device : WifiP2pDevice? in peers?.deviceList!!) {
-                    val config = WifiP2pConfig()
-                    config.deviceAddress = device?.deviceAddress
+        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+            override fun onSuccess() {
+                print("Ура")
 
-                    device?.deviceAddress?.let { ipGetter.getIpByArp(it) }
+                if (ActivityCompat.checkSelfPermission(
+                        activity,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(activity,
+                        listOf(Manifest.permission.ACCESS_FINE_LOCATION).toTypedArray(), 200)
+                }
+                manager.requestPeers(channel) { peers: WifiP2pDeviceList? ->
+                    for(device : WifiP2pDevice? in peers?.deviceList!!) {
+                        val config = WifiP2pConfig()
+                        config.deviceAddress = device?.deviceAddress
+
+                        device?.deviceAddress?.let { ipGetter.getIpByArp(it) }
+                    }
                 }
             }
+            override fun onFailure(reasonCode: Int) {
+                print("О нет")
+            }
+        })
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        renewDevicesInf()
+        //renewDevicesInf()
 
         when (intent?.action) {
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
@@ -61,7 +71,21 @@ class P2pBroadcasrReceiver : BroadcastReceiver {
                     }
                 }
             }
-
+            WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
+                val networkInfo = intent
+                    .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO) as NetworkInfo
+                if (networkInfo.isConnected) {
+                    manager.requestConnectionInfo(channel) { p0 ->
+                        if(p0?.groupFormed!! && p0.isGroupOwner) {
+                            SocketBackground().execute()
+                        } else if (p0.groupFormed) {
+                            hosts.add(p0.groupOwnerAddress.hostAddress)
+                        }
+                    }
+                } else {
+                    // It's a disconnect
+                }
+            }
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                 if (ActivityCompat.checkSelfPermission(
                         activity,

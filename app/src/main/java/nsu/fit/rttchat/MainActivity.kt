@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.wifi.WifiManager
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.Menu
@@ -17,24 +18,26 @@ import java.net.Socket
 
 class MainActivity : AppCompatActivity() {
 
-    private val manager: WifiP2pManager? by lazy(LazyThreadSafetyMode.NONE) {
-        getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager?
-    }
+    private lateinit var manager : WifiP2pManager
 
     var channel: WifiP2pManager.Channel? = null
     var receiver: BroadcastReceiver? = null
-
-    //Здесь должны быть все ip адреса
-    val hosts : List<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
-        channel = manager?.initialize(this, mainLooper, null)
+        val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        if(!wifiManager.isP2pSupported)
+            return
+
+        manager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+
+        channel = manager.initialize(this, mainLooper, null)
         channel?.also { channel ->
-            receiver = manager?.let { P2pBroadcasrReceiver(it, channel, this) }
+            receiver = P2pBroadcasrReceiver(manager, channel, this)
         }
 
         if (ActivityCompat.checkSelfPermission(
@@ -45,18 +48,17 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this,
                 listOf(Manifest.permission.ACCESS_FINE_LOCATION).toTypedArray(), 200)
         }
-        manager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+
+        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
-                print("")
+                print("Ура")
             }
             override fun onFailure(reasonCode: Int) {
-                print("")
+                print("О нет")
             }
         })
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
-
-        SocketBackground().execute()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
